@@ -38,13 +38,6 @@
 
 ["(" ")" "[" "]" "{" "}"] @punctuation.bracket
 
-; --- Quote operators ---
-
-(quote "'") @operator
-(unquote_splicing ",@") @operator
-(unquote ",") @operator
-(quasiquote "`") @operator
-
 ; --- Dot as punctuation (variadic args, dotted pairs) ---
 
 ((symbol) @punctuation.delimiter
@@ -64,25 +57,25 @@
 
 ; --- Keyword literals :foo (map keys, keyword args) ---
 
-((symbol) @string.special.symbol
-  (#match? @string.special.symbol "^:"))
+(keyword) @string.special.symbol
 
 ; --- Keyword accessor in call position: (:name person) ---
 
 (list
   .
-  ((symbol) @function.method
-    (#match? @function.method "^:")))
+  (keyword) @function.method)
 
 ; --- nil ---
 
 ((symbol) @constant.builtin
   (#eq? @constant.builtin "nil"))
 
-; --- Boolean symbols (Scheme grammar parses true/false as symbols) ---
+; --- Quote operators ---
 
-((symbol) @constant.builtin.boolean
-  (#any-of? @constant.builtin.boolean "true" "false"))
+(quote "'" @operator)
+(quasiquote "`" @operator)
+(unquote "," @operator)
+(unquote_splicing ",@" @operator)
 
 ; --- Define simple variable: (define name value) ---
 
