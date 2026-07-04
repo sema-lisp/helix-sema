@@ -25,4 +25,4 @@ args = ["lsp"]
 
 [[grammar]]
 name = "sema"
-source = { git = "https://github.com/HelgeSverre/tree-sitter-sema", rev = "main" }
+source = { git = "https://github.com/sema-lisp/tree-sitter-sema", rev = "v0.2.0" }
