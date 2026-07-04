@@ -1,40 +1,42 @@
-# Sema Support for Helix
+# Sema for Helix
 
-Syntax highlighting and language configuration for [Sema](https://sema-lang.com) (`.sema` files) in the [Helix](https://helix-editor.com) editor.
-
-- **Homepage**: [sema-lang.com](https://sema-lang.com)
-- **Source**: [github.com/HelgeSverre/sema](https://github.com/HelgeSverre/sema)
-- **Author**: Helge Sverre
-
-This configuration uses the dedicated **[tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema)** grammar for parsing `.sema` files, with Sema-specific highlight queries for proper keyword, builtin, and LLM primitive highlighting.
+Language configuration for [Sema](https://sema-lang.com) — a Lisp with first-class LLM primitives — in the [Helix](https://helix-editor.com) editor. Provides tree-sitter syntax highlighting and LSP integration for `.sema` files.
 
 ## Features
 
-- **Syntax highlighting** — special forms, LLM primitives (`llm/chat`, `defagent`, etc.), builtins, keyword literals (`:foo`), booleans, `nil`, strings, comments
-- **Smart auto-pairs** — `()`, `[]`, `{}`, `""`
-- **Comment support** — `;` line comments
-- **2-space indentation**
+- **Tree-sitter syntax highlighting** via the dedicated [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar (pinned to `v0.2.0`) — special forms, LLM primitives (`llm/chat`, `defagent`, `deftool`, …), slash-namespaced builtins, keyword literals (`:foo`), booleans, `nil`, strings, and comments
+- **Language server** via `sema lsp` — completions, hover, go-to-definition, references, rename, semantic tokens, and more
+- **Smart auto-pairs** for `()`, `[]`, `{}`, `""`
+- **Comment support** (`;` line comments) and 2-space indentation
 
-## Installation
+## Requirements
 
-### 1. Copy the language configuration
+- The [`sema`](https://github.com/HelgeSverre/sema) binary on your `PATH` (provides the language server via `sema lsp`)
+- [Helix](https://helix-editor.com) 23.10 or newer
+- A C compiler (`cc`/`gcc`/`clang`) — Helix compiles the tree-sitter grammar locally
 
-Append (or merge) the contents of `languages.toml` into your Helix config:
+## Install
+
+Helix has no plugin system, so you merge this configuration into your own Helix config directory (`~/.config/helix/`).
+
+### 1. Add the language and grammar definitions
+
+Append the `[[language]]`, `[language-server.sema-lsp]`, `[language.auto-pairs]`, and `[[grammar]]` sections from this repo's [`languages.toml`](languages.toml) to your own `~/.config/helix/languages.toml`:
 
 ```sh
-cat editors/helix/languages.toml >> ~/.config/helix/languages.toml
+cat languages.toml >> ~/.config/helix/languages.toml
 ```
 
-> **Note:** If you already have a `languages.toml`, manually merge the `[[language]]` and `[[grammar]]` sections to avoid duplicates.
+> If you already have a `languages.toml`, merge the sections by hand rather than concatenating, to avoid duplicate keys.
 
 ### 2. Copy the query files
 
 ```sh
 mkdir -p ~/.config/helix/runtime/queries/sema
-cp editors/helix/queries/sema/*.scm ~/.config/helix/runtime/queries/sema/
+cp queries/sema/*.scm ~/.config/helix/runtime/queries/sema/
 ```
 
-### 3. Fetch and build the Sema grammar
+### 3. Fetch and build the grammar
 
 ```sh
 hx --grammar fetch
@@ -43,8 +45,6 @@ hx --grammar build
 
 ### 4. Verify
 
-Check that Helix recognizes the language:
-
 ```sh
 hx --health sema
 ```
@@ -52,15 +52,28 @@ hx --health sema
 Then open any `.sema` file:
 
 ```sh
-hx examples/hello.sema
+hx hello.sema
 ```
 
-## How It Works
+## How it works
 
-Helix's `grammar = "sema"` setting tells Helix to parse `.sema` files using the [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar, which provides native support for Sema-specific syntax like keyword literals (`:name`), hash maps, and vectors. The custom query files in `queries/sema/` provide Sema-specific captures — adding highlighting for LLM primitives, slash-namespaced builtins, keyword literals, and special forms like `defagent` and `deftool`.
+The `grammar = "sema"` setting tells Helix to parse `.sema` files with the [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar, which natively understands Sema syntax like keyword literals (`:name`), hash maps, and vectors. The query files in `queries/sema/` add Sema-specific captures for LLM primitives, slash-namespaced builtins, and special forms. The `[language-server.sema-lsp]` block wires Helix to the language server shipped in the `sema` binary (`sema lsp`).
 
 ## Troubleshooting
 
-- **No highlighting?** Make sure `HELIX_RUNTIME` is not overriding the query path. Helix looks for queries in `~/.config/helix/runtime/queries/` and then in its built-in runtime directory.
-- **Grammar not found?** Run `hx --grammar fetch && hx --grammar build` to ensure the Sema grammar is compiled.
-- **Stale config?** Restart Helix after changing `languages.toml` — it does not hot-reload language configuration.
+- **No highlighting?** Confirm the query files landed in `~/.config/helix/runtime/queries/sema/` and that `HELIX_RUNTIME` is not pointing elsewhere.
+- **Grammar not found?** Re-run `hx --grammar fetch && hx --grammar build`.
+- **No LSP features?** Make sure `sema` is on your `PATH`; `hx --health sema` reports whether the language server was found.
+- **Stale config?** Restart Helix after editing `languages.toml` — it does not hot-reload language configuration.
+
+## Roadmap
+
+Upstreaming this configuration into [helix-editor/helix](https://github.com/helix-editor/helix) once Sema adoption supports inclusion in the default distribution.
+
+## Links
+
+- [Sema homepage](https://sema-lang.com)
+- [Sema playground](https://sema.run)
+- [Sema source](https://github.com/HelgeSverre/sema)
+- [tree-sitter-sema grammar](https://github.com/sema-lisp/tree-sitter-sema)
+- [Helix editor](https://helix-editor.com)
