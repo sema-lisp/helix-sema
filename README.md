@@ -1,19 +1,18 @@
+<div align="center">
+
+<img src="https://sema-lang.com/logo.svg" alt="Sema" height="64">
+
 # Sema for Helix
 
-Language configuration for [Sema](https://sema-lang.com) — a Lisp with first-class LLM primitives — in the [Helix](https://helix-editor.com) editor. Provides tree-sitter syntax highlighting and LSP integration for `.sema` files.
+**[Sema](https://sema-lang.com) support for [Helix](https://helix-editor.com)** — a Lisp with first-class LLM primitives.
 
-## Features
+[![CI](https://img.shields.io/github/actions/workflow/status/sema-lisp/helix-sema/ci.yml?branch=main&label=CI&logo=github)](https://github.com/sema-lisp/helix-sema/actions)
+[![License](https://img.shields.io/github/license/sema-lisp/helix-sema?color=c8a855)](LICENSE)
+[![Website](https://img.shields.io/badge/website-sema--lang.com-c8a855)](https://sema-lang.com)
 
-- **Tree-sitter syntax highlighting** via the dedicated [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar (pinned to `v0.2.0`) — special forms, LLM primitives (`llm/chat`, `defagent`, `deftool`, …), slash-namespaced builtins, keyword literals (`:foo`), booleans, `nil`, strings, and comments
-- **Language server** via `sema lsp` — completions, hover, go-to-definition, references, rename, semantic tokens, and more
-- **Smart auto-pairs** for `()`, `[]`, `{}`, `""`
-- **Comment support** (`;` line comments) and 2-space indentation
+</div>
 
-## Requirements
-
-- The [`sema`](https://github.com/HelgeSverre/sema) binary on your `PATH` (provides the language server via `sema lsp`)
-- [Helix](https://helix-editor.com) 23.10 or newer
-- A C compiler (`cc`/`gcc`/`clang`) — Helix compiles the tree-sitter grammar locally
+Language configuration for Sema in the Helix editor. Provides tree-sitter syntax highlighting and LSP integration for `.sema` files.
 
 ## Install
 
@@ -55,16 +54,29 @@ Then open any `.sema` file:
 hx hello.sema
 ```
 
-## How it works
+## Features
+
+- **Tree-sitter syntax highlighting** via the dedicated [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar (pinned to `v0.2.0`) — special forms, LLM primitives (`llm/chat`, `defagent`, `deftool`, …), slash-namespaced builtins, keyword literals (`:foo`), booleans, `nil`, strings, and comments
+- **Language server** via `sema lsp` — completions, hover, go-to-definition, references, rename, semantic tokens, and more
+- **Smart auto-pairs** for `()`, `[]`, `{}`, `""`
+- **Comment support** (`;` line comments) and 2-space indentation
+
+### How it works
 
 The `grammar = "sema"` setting tells Helix to parse `.sema` files with the [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema) grammar, which natively understands Sema syntax like keyword literals (`:name`), hash maps, and vectors. The query files in `queries/sema/` add Sema-specific captures for LLM primitives, slash-namespaced builtins, and special forms. The `[language-server.sema-lsp]` block wires Helix to the language server shipped in the `sema` binary (`sema lsp`).
 
-## Troubleshooting
+### Troubleshooting
 
 - **No highlighting?** Confirm the query files landed in `~/.config/helix/runtime/queries/sema/` and that `HELIX_RUNTIME` is not pointing elsewhere.
 - **Grammar not found?** Re-run `hx --grammar fetch && hx --grammar build`.
 - **No LSP features?** Make sure `sema` is on your `PATH`; `hx --health sema` reports whether the language server was found.
 - **Stale config?** Restart Helix after editing `languages.toml` — it does not hot-reload language configuration.
+
+## Requirements
+
+- The [`sema`](https://github.com/HelgeSverre/sema) binary on your `PATH` (provides the language server via `sema lsp`)
+- [Helix](https://helix-editor.com) 23.10 or newer
+- A C compiler (`cc`/`gcc`/`clang`) — Helix compiles the tree-sitter grammar locally
 
 ## Roadmap
 
@@ -72,8 +84,12 @@ Upstreaming this configuration into [helix-editor/helix](https://github.com/heli
 
 ## Links
 
-- [Sema homepage](https://sema-lang.com)
-- [Sema playground](https://sema.run)
-- [Sema source](https://github.com/HelgeSverre/sema)
-- [tree-sitter-sema grammar](https://github.com/sema-lisp/tree-sitter-sema)
-- [Helix editor](https://helix-editor.com)
+- **Website** — [sema-lang.com](https://sema-lang.com)
+- **Playground** — [sema.run](https://sema.run)
+- **Documentation** — [sema-lang.com/docs](https://sema-lang.com/docs/)
+- **Grammar** — [tree-sitter-sema](https://github.com/sema-lisp/tree-sitter-sema)
+- **Repository** — [sema-lisp/helix-sema](https://github.com/sema-lisp/helix-sema)
+
+## License
+
+[MIT](LICENSE) © [Helge Sverre](https://github.com/HelgeSverre)
