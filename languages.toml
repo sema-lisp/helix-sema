@@ -23,6 +23,21 @@ args = ["lsp"]
 "{" = "}"
 "\"" = "\""
 
+# Debug adapter — Sema's DAP server (`sema dap`) over stdio.
+# Start a session with `:debug-start` / space-g-d; pick the "launch" template
+# and Helix will prompt for the program (defaults to the current file).
+[language.debugger]
+name = "sema"
+transport = "stdio"
+command = "sema"
+args = ["dap"]
+
+[[language.debugger.templates]]
+name = "launch"
+request = "launch"
+completion = [{ name = "program", completion = "filename", default = "" }]
+args = { program = "{0}", stopOnEntry = false }
+
 [[grammar]]
 name = "sema"
 source = { git = "https://github.com/sema-lisp/tree-sitter-sema", rev = "v0.2.0" }
