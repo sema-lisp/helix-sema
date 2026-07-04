@@ -35,8 +35,14 @@ args = ["dap"]
 [[language.debugger.templates]]
 name = "launch"
 request = "launch"
-completion = [{ name = "program", completion = "filename", default = "" }]
-args = { program = "{0}", stopOnEntry = false }
+completion = [{ name = "program", completion = "filename" }]
+args = { program = "{0}" }
+
+[[language.debugger.templates]]
+name = "launch (stop on entry)"
+request = "launch"
+completion = [{ name = "program", completion = "filename" }]
+args = { program = "{0}", stopOnEntry = true }
 
 [[grammar]]
 name = "sema"

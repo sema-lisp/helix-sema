@@ -27,7 +27,11 @@
 (boolean) @constant.builtin.boolean
 (character) @constant.character
 (string) @string
-(escape_sequence) @constant.character.escape
+(regex) @string.regexp
+
+; Reader extensions: deref (@expr) and shebang (#!...)
+(deref "@" @operator)
+(shebang) @comment
 
 ; --- Comments ---
 
