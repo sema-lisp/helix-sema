@@ -10,6 +10,6 @@ jobs:
     name: Validate languages.toml
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check languages.toml is well-formed TOML
         run: python3 -c "import tomllib; tomllib.load(open('languages.toml','rb')); print('languages.toml is valid TOML')"
