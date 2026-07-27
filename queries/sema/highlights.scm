@@ -88,7 +88,7 @@
   (symbol) @_f
   .
   (symbol) @variable
-  (#eq? @_f "define"))
+  (#any-of? @_f "define" "def"))
 
 ; --- set! target: (set! name value) ---
 
@@ -106,7 +106,7 @@
   (symbol) @_f
   .
   (symbol) @function
-  (#eq? @_f "defun"))
+  (#any-of? @_f "defun" "defn"))
 
 ; --- Define macro: (defmacro name ...) ---
 
@@ -166,7 +166,7 @@
     .
     (symbol) @function
     (symbol) @variable.parameter)
-  (#eq? @_f "define"))
+  (#any-of? @_f "define" "def"))
 
 ; --- Core builtin functions (fallback when LSP semantic tokens unavailable) ---
 ; The full set of builtins is classified by the LSP via semantic tokens.
@@ -243,8 +243,10 @@
   .
   (symbol) @keyword
   (#any-of? @keyword
-    "define" "defun" "lambda" "fn" "set!"
-    "let" "let*" "letrec" "begin" "do"
+    "define" "def" "defun" "defn" "lambda" "fn" "set!"
+    "let" "let*" "letrec" "begin" "progn" "do" "while"
+    "let-values" "let*-values" "define-values" "define-syntax"
+    "match" "match*" "defmulti" "defmethod" "async" "await"
     "and" "or"
     "quote" "quasiquote" "unquote" "unquote-splicing"
     "define-record-type" "defmacro"

@@ -6,7 +6,7 @@
   (symbol) @_f
   .
   (_) @function.inside
-  (#any-of? @_f "define" "defun" "lambda" "fn" "defmacro")
+  (#any-of? @_f "define" "def" "defun" "defn" "lambda" "fn" "defmacro")
 ) @function.around
 
 ; Agent/tool definitions
