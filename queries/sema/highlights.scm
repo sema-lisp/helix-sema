@@ -135,6 +135,15 @@
   (symbol) @function
   (#eq? @_f "deftool"))
 
+; --- Define workflow or policy: (defworkflow name ...) / (defpolicy name ...) ---
+
+(list
+  .
+  (symbol) @_f
+  .
+  (symbol) @function
+  (#any-of? @_f "defworkflow" "defpolicy"))
+
 ; --- Lambda / fn parameter lists ---
 
 (list
@@ -194,6 +203,14 @@
     "abs" "min" "max" "round" "floor" "ceiling" "sqrt"
     ; Strings
     "string-append" "substring" "string-length"
+    ; Workflow and policy forms
+    "approval" "checkpoint" "parallel" "parallel-settled" "phase"
+    "pipeline" "pipeline-settled" "policy/without" "settled-partition"
+    "settled/err?" "settled/ok?" "step" "tool/policy-subjects"
+    "workflow/approval" "workflow/check" "workflow/checkpoint"
+    "workflow/phase" "workflow/policy-without" "workflow/run"
+    "workflow/run-form" "workflow/step" "workflow/tool-call"
+    "workflow/tool-result"
     ; Misc
     "not" "error" "gensym" "type"))
 
@@ -249,7 +266,7 @@
     "match" "match*" "defmulti" "defmethod" "async" "await"
     "and" "or"
     "quote" "quasiquote" "unquote" "unquote-splicing"
-    "define-record-type" "defmacro"
+    "define-record-type" "defmacro" "defworkflow" "defpolicy"
     "delay" "force" "eval" "macroexpand"
     "with-budget"
     "prompt" "message"))
