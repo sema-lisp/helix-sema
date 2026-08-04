@@ -13,3 +13,5 @@ jobs:
       - uses: actions/checkout@v7
       - name: Check languages.toml is well-formed TOML
         run: python3 -c "import tomllib; tomllib.load(open('languages.toml','rb')); print('languages.toml is valid TOML')"
+      - name: Test installer merge behavior
+        run: bash tests/install_test.sh
