@@ -211,6 +211,9 @@
     "workflow/phase" "workflow/policy-without" "workflow/run"
     "workflow/run-form" "workflow/step" "workflow/tool-call"
     "workflow/tool-result"
+    ; Regex
+    "regex/match?" "regex/match" "regex/find-all"
+    "regex/replace" "regex/replace-all" "regex/split"
     ; Misc
     "not" "error" "gensym" "type"))
 
