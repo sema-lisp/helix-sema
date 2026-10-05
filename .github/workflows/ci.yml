@@ -15,3 +15,5 @@ jobs:
         run: python3 -c "import tomllib; tomllib.load(open('languages.toml','rb')); print('languages.toml is valid TOML')"
       - name: Test installer merge behavior
         run: bash tests/install_test.sh
+      - name: Test highlight query
+        run: python3 tests/highlights_test.py
