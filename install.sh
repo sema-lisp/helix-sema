@@ -169,6 +169,52 @@ has_sema_grammar() {
   ' "$1"
 }
 
+has_sema_language_server() {
+  awk '
+    /^[[:space:]]*\[language-server\.sema-lsp\][[:space:]]*(#.*)?$/ {
+      found = 1
+      exit
+    }
+    END { exit(found ? 0 : 1) }
+  ' "$1"
+}
+
+append_language_definition() {
+  awk '
+    /^[[:space:]]*\[language-server\.sema-lsp\][[:space:]]*(#.*)?$/ {
+      skip_server = 1
+      next
+    }
+    skip_server && /^[[:space:]]*\[/ { skip_server = 0 }
+    /^[[:space:]]*\[\[grammar\]\][[:space:]]*(#.*)?$/ { exit }
+    !skip_server { print }
+  ' "$SRC/languages.toml"
+}
+
+append_language_server_definition() {
+  awk '
+    /^[[:space:]]*\[language-server\.sema-lsp\][[:space:]]*(#.*)?$/ { emit = 1 }
+    emit && emitted && /^[[:space:]]*\[/ { exit }
+    emit { print; emitted = 1 }
+  ' "$SRC/languages.toml"
+}
+
+append_grammar_definition() {
+  awk '
+    emit || /^[[:space:]]*\[\[grammar\]\][[:space:]]*(#.*)?$/ { emit = 1; print }
+  ' "$SRC/languages.toml"
+}
+
+validate_toml() {
+  if command -v python3 >/dev/null 2>&1 && python3 -c 'import tomllib' 2>/dev/null; then
+    python3 -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$1"
+  elif command -v python >/dev/null 2>&1 && python -c 'import tomllib' 2>/dev/null; then
+    python -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$1"
+  else
+    warn "Python 3.11+ is not available; skipped the merged TOML validation."
+  fi
+}
+
 if [ ! -f "$LANG_TOML" ]; then
   if [ "$DRY_RUN" = true ]; then
     echo "  [dry-run] would create $LANG_TOML"
@@ -181,43 +227,36 @@ if [ ! -f "$LANG_TOML" ]; then
   fi
 else
   language_present=false
+  language_server_present=false
   grammar_present=false
   has_sema_language "$LANG_TOML" && language_present=true
+  has_sema_language_server "$LANG_TOML" && language_server_present=true
   has_sema_grammar "$LANG_TOML" && grammar_present=true
 
-  if [ "$language_present" = true ] && [ "$grammar_present" = true ]; then
-    echo "  • $LANG_TOML already defines the 'sema' language and grammar — left untouched"
+  if [ "$language_present" = true ] && [ "$language_server_present" = true ] && [ "$grammar_present" = true ]; then
+    echo "  • $LANG_TOML already defines the 'sema' language, server, and grammar — left untouched"
     echo "    (re-copy from $SRC/languages.toml manually if you want the latest)"
   elif [ "$DRY_RUN" = true ]; then
-    if [ "$language_present" = false ] && [ "$grammar_present" = false ]; then
-      echo "  [dry-run] would append Sema language and grammar config to $LANG_TOML"
-    elif [ "$language_present" = false ]; then
-      echo "  [dry-run] would append Sema language config to $LANG_TOML"
-    else
-      echo "  [dry-run] would append Sema grammar config to $LANG_TOML"
-    fi
+    missing=""
+    [ "$language_present" = true ] || missing="$missing language"
+    [ "$language_server_present" = true ] || missing="$missing language-server"
+    [ "$grammar_present" = true ] || missing="$missing grammar"
+    echo "  [dry-run] would append missing Sema config:$missing"
   else
     [ -w "$LANG_TOML" ] || die "$LANG_TOML is not writable — fix permissions."
+    candidate="${LANG_TOML}.sema.$$"
+    cp "$LANG_TOML" "$candidate" 2>/dev/null || die "Could not prepare an updated $LANG_TOML."
+    CREATED_FILES+=("$candidate")
     {
       echo
       echo "# --- Sema (added by sema-lisp/helix-sema install.sh) ---"
-      if [ "$language_present" = false ] && [ "$grammar_present" = false ]; then
-        cat "$SRC/languages.toml"
-      elif [ "$language_present" = false ]; then
-        awk '/^[[:space:]]*\[\[grammar\]\][[:space:]]*(#.*)?$/ { exit } { print }' \
-          "$SRC/languages.toml"
-      else
-        awk 'emit || /^[[:space:]]*\[\[grammar\]\][[:space:]]*(#.*)?$/ { emit = 1; print }' \
-          "$SRC/languages.toml"
-      fi
-    } >>"$LANG_TOML"
-    if [ "$language_present" = false ] && [ "$grammar_present" = false ]; then
-      echo "  ✓ appended Sema language and grammar config to $LANG_TOML"
-    elif [ "$language_present" = false ]; then
-      echo "  ✓ appended Sema language config to $LANG_TOML"
-    else
-      echo "  ✓ appended Sema grammar config to $LANG_TOML"
-    fi
+      [ "$language_present" = true ] || append_language_definition
+      [ "$language_server_present" = true ] || append_language_server_definition
+      [ "$grammar_present" = true ] || append_grammar_definition
+    } >>"$candidate"
+    validate_toml "$candidate" || die "The merged language configuration is invalid; $LANG_TOML was left unchanged."
+    mv "$candidate" "$LANG_TOML" 2>/dev/null || die "Could not replace $LANG_TOML with the validated configuration."
+    echo "  ✓ appended missing Sema config to $LANG_TOML"
   fi
 fi
 

@@ -25,6 +25,17 @@ assert_header_count() {
   fi
 }
 
+assert_server_count() {
+  local expected="$1"
+  local file="$2"
+  local actual
+  actual="$(grep -c '^\[language-server\.sema-lsp\]$' "$file" || true)"
+  if [ "$actual" -ne "$expected" ]; then
+    echo "expected $expected [language-server.sema-lsp] section(s), found $actual in $file" >&2
+    return 1
+  fi
+}
+
 run_installer() {
   local case_root="$1"
   XDG_CONFIG_HOME="$case_root/config" PATH="$TEST_ROOT/bin:$PATH" \
@@ -44,6 +55,7 @@ EOF
 run_installer "$grammar_only"
 assert_header_count 1 language "$grammar_only/config/helix/languages.toml"
 assert_header_count 1 grammar "$grammar_only/config/helix/languages.toml"
+assert_server_count 1 "$grammar_only/config/helix/languages.toml"
 
 # The inverse partial configuration receives only the missing grammar.
 language_only="$TEST_ROOT/language-only"
@@ -56,6 +68,38 @@ EOF
 run_installer "$language_only"
 assert_header_count 1 language "$language_only/config/helix/languages.toml"
 assert_header_count 1 grammar "$language_only/config/helix/languages.toml"
+assert_server_count 1 "$language_only/config/helix/languages.toml"
+
+# A pre-existing server override must be kept and must not be declared twice.
+server_only="$TEST_ROOT/server-only"
+mkdir -p "$server_only/config/helix"
+cat >"$server_only/config/helix/languages.toml" <<'EOF'
+[language-server.sema-lsp]
+command = "/custom/bin/sema"
+args = ["lsp"]
+EOF
+run_installer "$server_only"
+assert_header_count 1 language "$server_only/config/helix/languages.toml"
+assert_header_count 1 grammar "$server_only/config/helix/languages.toml"
+assert_server_count 1 "$server_only/config/helix/languages.toml"
+grep -q 'command = "/custom/bin/sema"' "$server_only/config/helix/languages.toml"
+
+# Language and grammar definitions still need the missing server section.
+no_server="$TEST_ROOT/no-server"
+mkdir -p "$no_server/config/helix"
+cat >"$no_server/config/helix/languages.toml" <<'EOF'
+[[language]]
+name = "sema"
+scope = "source.sema"
+
+[[grammar]]
+name = "sema"
+source = { git = "https://example.invalid/sema", rev = "main" }
+EOF
+run_installer "$no_server"
+assert_header_count 1 language "$no_server/config/helix/languages.toml"
+assert_header_count 1 grammar "$no_server/config/helix/languages.toml"
+assert_server_count 1 "$no_server/config/helix/languages.toml"
 
 # A complete configuration remains unchanged on repeated installs.
 complete="$TEST_ROOT/complete"
@@ -65,5 +109,15 @@ run_installer "$complete"
 run_installer "$complete"
 assert_header_count 1 language "$complete/config/helix/languages.toml"
 assert_header_count 1 grammar "$complete/config/helix/languages.toml"
+assert_server_count 1 "$complete/config/helix/languages.toml"
+
+for name in bytes/length async/with-timeout path/canonicalize db/open workflow/mcp-handle; do
+  grep -Fq "\"$name\"" "$ROOT/queries/sema/highlights.scm"
+done
+if grep -Fq '"with-budget"' "$ROOT/queries/sema/highlights.scm"; then
+  echo "obsolete with-budget form is still highlighted" >&2
+  exit 1
+fi
+grep -Fq '"llm/with-budget"' "$ROOT/queries/sema/highlights.scm"
 
 echo "installer merge tests: clean"
